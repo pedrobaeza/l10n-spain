@@ -29,6 +29,7 @@ class L10nEsAeatMod130Report(models.Model):
     _inherit = "l10n.es.aeat.report"
     _name = "l10n.es.aeat.mod130.report"
     _description = "AEAT 130 report"
+    _period_monthly = False
 
     company_partner_id = fields.Many2one('res.partner', string='Partner',
                                          relation='company_id.partner_id',
@@ -36,10 +37,7 @@ class L10nEsAeatMod130Report(models.Model):
     currency_id = fields.Many2one('res.currency', string='Currency',
                                   relation='company_id.currency_id',
                                   store=True)
-    period = fields.Selection(
-        [('1T', 'First quarter'), ('2T', 'Second quarter'),
-         ('3T', 'Third quarter'), ('4T', 'Fourth quarter')], string='Period',
-        states={'draft': [('readonly', False)]}, readonly=True, required=True)
+    period_type = fields.Selection(oldname='period')
     activity_type = fields.Selection(
         [('primary', 'Actividad agrícola, ganadera, forestal o pesquera'),
          ('other', 'Actividad distinta a las anteriores')],

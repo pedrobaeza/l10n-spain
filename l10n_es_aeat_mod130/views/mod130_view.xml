@@ -11,7 +11,6 @@
                     <attribute name="string">AEAT 130 reports</attribute>=
                 </tree>
                 <field name="fiscalyear_id" position="after">
-                    <field name="period"/>
                     <field name="result"/>
                 </field>
             </field>
@@ -27,7 +26,6 @@
                     <attribute name="name">%(action_wizard_aeat_mod130_export)d</attribute>
                 </button>
                 <field name="fiscalyear_id" position="after">
-                    <field name="period"/>
                     <field name="currency_id" invisible="1"/>
                 </field>
                 <group string="Declaración" position="after">
