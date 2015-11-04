@@ -1,3 +1,8 @@
+.. image:: https://img.shields.io/badge/licence-AGPL--3-blue.svg
+   :target: http://www.gnu.org/licenses/agpl-3.0-standalone.html
+   :alt: License: AGPL-3
+
+=====================
 Modelo 349 de la AEAT
 =====================
 
@@ -10,12 +15,12 @@ lógicos del 349.
 De acuerdo con la normativa de la Hacienda Española, están obligados a
 presentar el modelo 349:
 
- * Todos aquellos sujetos pasivos del Impuesto sobre el Valor Añadido que hayan
-   realizado las operaciones previstas en el artículo 79 del Reglamento del
-   Impuesto sobre el Valor Añadido, es decir, quienes adquieran o vendan bienes
-   a empresas situadas en países miembros de la UE, sino también aquellos que
-   presten servicios a miembros de la UE y cumplan con las siguientes
-   condiciones:
+* Todos aquellos sujetos pasivos del Impuesto sobre el Valor Añadido que hayan
+  realizado las operaciones previstas en el artículo 79 del Reglamento del
+  Impuesto sobre el Valor Añadido, es decir, quienes adquieran o vendan bienes
+  a empresas situadas en países miembros de la UE, sino también aquellos que
+  presten servicios a miembros de la UE y cumplan con las siguientes
+  condiciones:
 
   - Que conforme a las reglas de la localización aplicables a las
     mismas, no se entiendan prestadas en el territorio de aplicación del
@@ -39,36 +44,57 @@ presentar el modelo 349:
     correspondiente período mensual. No obstante, la presentación podrá ser
     bimestral, trimestral o anual en los siguientes supuestos:
 
- * Bimestral: Si al final del segundo mes de un trimestre natural el
-   importe total de las entregas de bienes y prestaciones de servicios que
-   deban consignarse en la declaración recapitulativa supera 100.000 euros
-   (a partir de 2012, el umbral se fija en 50.000 euros).
+* Bimestral: Si al final del segundo mes de un trimestre natural el
+  importe total de las entregas de bienes y prestaciones de servicios que
+  deban consignarse en la declaración recapitulativa supera 100.000 euros
+  (a partir de 2012, el umbral se fija en 50.000 euros).
 
- * Trimestral: Cuando ni durante el trimestre de referencia ni en cada uno
-   de los cuatro trimestres naturales anteriores el importe total de las
-   entregas de bienes y prestaciones de servicios que deban consignarse en la
-   declaración recapitulativa sea superior a 100.000 euros.
+* Trimestral: Cuando ni durante el trimestre de referencia ni en cada uno
+  de los cuatro trimestres naturales anteriores el importe total de las
+  entregas de bienes y prestaciones de servicios que deban consignarse en la
+  declaración recapitulativa sea superior a 100.000 euros.
 
- * Anual: En los treinta primeros días de enero del año siguiente ( la
-   primera sería en enero de 2011) si el importe total de las entregas de
-   bienes o prestaciones de servicios  del año ( excluido IVA), no supera los
-   35.000 € y el importe total de las entregas de bienes a otro Estado
-   Miembro (salvo medios de transporte nuevos) exentas de IVA no sea superior
-   a 15.000 €.
+* Anual: En los treinta primeros días de enero del año siguiente ( la
+  primera sería en enero de 2011) si el importe total de las entregas de
+  bienes o prestaciones de servicios  del año ( excluido IVA), no supera los
+  35.000 € y el importe total de las entregas de bienes a otro Estado
+  Miembro (salvo medios de transporte nuevos) exentas de IVA no sea superior
+  a 15.000 €.
 
-Installation
-============
+Instalación
+===========
 
 Para instalar este módulo, es necesario instalar el módulo
 *account_invoice_currency*, que se encuentra en el repositorio de GitHub:
 
 https://github.com/OCA/account-financial-tools
 
-Credits
-=======
+Uso
+===
 
-Contributors
-------------
+.. image:: https://odoo-community.org/website/image/ir.attachment/5784_f2813bd/datas
+   :alt: Pruebe en Runbot
+   :target: https://runbot.odoo-community.org/runbot/189/8.0
+
+Gestión de errores
+==================
+
+Los errores/fallos se gestionan en `las incidencias de GitHub <https://github.com/OCA/
+l10n-spain/issues>`_.
+En caso de problemas, compruebe por favor si su incidencia ha sido ya
+reportada. Si fue el primero en descubrirla, ayúdenos a solucionarla proveyendo
+una detallada y bienvenida retroalimentación
+`aquí <https://github.com/OCA/
+l10n-spain/issues/new?body=m%f3dulo:%20
+l10n_es_aeat_mod349%0Aversi%f3n:%20
+8.0%0A%0A**Pasos%20para%20reproducirlo**%0A-%20...%0A%0A**Comportamiento%20actual**%0A%0A**Comportamiento%20esperado**>`_.
+
+Créditos
+========
+
+Contribuidores
+--------------
+
 * Luis Manuel Angueira Blanco (Pexego)
 * Omar Castiñeira Saavedra<omar@pexego.es>
 * Miguel López (Top Consultant)

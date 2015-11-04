@@ -209,7 +209,7 @@
                     <td><para style="DataLineCenter">[[partner_refund.operation_key or '-']]</para></td>
                     <td><para style="DataLine">[[partner_refund.country_id.name or '-----']]</para></td>
                     <td><para style="DataLine">[[partner_refund.partner_vat or '-----']]</para></td>
-                    <td><para style="DataLineCenter">[[partner_refund.period_selection or '-----']][[partner_refund.period_selection == 'MO' and (" " + partner_refund.month_selection) or '']]</para></td>
+                    <td><para style="DataLineCenter">[[partner_refund.partner_record.report_id.period_type or '-----']]</para></td>
                     <td><para style="DataLine">[[partner_refund.fiscalyear_id.code or '----']]</para></td>
                     <td><para style="DataLineRight">[[partner_refund.total_origin_amount or 0.0 ]] [[report.company_id.currency_id.code]]</para></td>
                     <td><para style="DataLineRight">[[partner_refund.total_operation_amount or 0.0 ]] [[report.company_id.currency_id.code]]</para></td>

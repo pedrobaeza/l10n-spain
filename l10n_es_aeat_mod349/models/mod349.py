@@ -31,20 +31,6 @@ from openerp import models, fields, api, exceptions, _
 from openerp.addons.l10n_es_aeat_mod349.models.account_invoice \
     import OPERATION_KEYS
 
-MONTH_MAPPING = [
-    ('01', 'January'),
-    ('02', 'February'),
-    ('03', 'March'),
-    ('04', 'April'),
-    ('05', 'May'),
-    ('06', 'June'),
-    ('07', 'July'),
-    ('08', 'August'),
-    ('09', 'September'),
-    ('10', 'October'),
-    ('11', 'November'),
-    ('12', 'December'),
-]
 
 # TODO: Quitarlo de aquí y pasarlo a l10n_es_aeat con sustituciones
 NAME_RESTRICTIVE_REGEXP = re.compile(
@@ -73,6 +59,9 @@ class Mod349(models.Model):
     _inherit = "l10n.es.aeat.report"
     _name = "l10n.es.aeat.mod349.report"
     _description = "AEAT Model 349 Report"
+    _period_yearly = True
+    _period_quarterly = True
+    _period_monthly = True
 
     @api.one
     @api.depends('partner_record_ids', 'partner_refund_ids',
@@ -94,7 +83,7 @@ class Mod349(models.Model):
         """Returns an alias as name for the report."""
         self.name = '%s - %s/%s' % (
             self.company_id.name or '', self.fiscalyear_id.name or '',
-            self.period_selection or '')
+            self.period_type or '')
 
     def _create_349_partner_records(self, invoices, partner, operation_key):
         """creates partner records in 349"""
@@ -157,9 +146,7 @@ class Mod349(models.Model):
                  'total_operation_amount': partner_rec.total_operation_amount -
                     sum([x.cc_amount_untaxed for x in record[partner_rec]]),
                  'total_origin_amount': partner_rec.total_operation_amount,
-                 'period_selection': partner_rec.report_id.period_selection,
-                 'month_selection': partner_rec.report_id.month_selection,
-                 'fiscalyear_id': partner_rec.report_id.fiscalyear_id.id})
+                 'partner_record': partner_rec.id})
             # Creation of partner detail lines
             for refund in record[partner_rec]:
                 obj_detail.create(
@@ -184,24 +171,16 @@ class Mod349(models.Model):
                 for op_key in [x[0] for x in OPERATION_KEYS]:
                     # Invoices
                     invoices_total = invoice_obj._get_invoices_by_type(
-                        partner, operation_key=op_key,
-                        period_selection=mod349.period_selection,
-                        fiscalyear=mod349.fiscalyear_id,
-                        period_id=[x.id for x in mod349.period_ids],
-                        month=mod349.month_selection)
-                    # Separates normal invoices from restitution
-                    invoices, refunds = \
-                        invoices_total.clean_refund_invoices(
-                            partner, fiscalyear=mod349.fiscalyear_id,
-                            periods=mod349.period_ids,
-                            month=mod349.month_selection,
-                            period_selection=mod349.period_selection)
+                        partner, operation_key=op_key, periods=mod349.periods)
+                    # Separates normal invoices from refunds
+                    invoices, refunds = invoices_total.clean_refund_invoices(
+                        periods=mod349.periods)
                     if invoices:
-                        mod349._create_349_partner_records(invoices, partner,
-                                                           op_key)
+                        mod349._create_349_partner_records(
+                            invoices, partner, op_key)
                     if refunds:
-                        mod349._create_349_refund_records(refunds, partner,
-                                                          op_key)
+                        mod349._create_349_refund_records(
+                            refunds, partner, op_key)
         return True
 
     @api.multi
@@ -271,32 +250,7 @@ class Mod349(models.Model):
         self._check_restrictive_names()
         return super(Mod349, self).button_confirm()
 
-    @api.multi
-    def onchange_period_selection(self, period_selection, fiscalyear_id):
-        period = False
-        if period_selection:
-            if period_selection in ['1T', '2T', '3T', '4T']:
-                period = self.env['account.period'].search(
-                    [('name', 'like', period_selection),
-                     ('fiscalyear_id', '=', fiscalyear_id)])
-        return {'value': {'period_id': period and period.id}}
-
     name = fields.Char(compute="_get_report_alias", string="Name")
-    period_ids = fields.Many2many(
-        comodel_name='account.period', relation='mod349_mod349_period_rel',
-        column1='mod349_id', column2='period_ids', string='Periods')
-    period_selection = fields.Selection(
-        [('0A', '0A - Annual'),
-         ('MO', 'MO - Monthly'),
-         ('1T', '1T - First Quarter'),
-         ('2T', '2T - Second Quarter'),
-         ('3T', '3T - Third Quarter'),
-         ('4T', '4T - Fourth Quarter')],
-        string='Period', required=True, select=1, default='0A',
-        states={'confirmed': [('readonly', True)]})
-    month_selection = fields.Selection(
-        selection=MONTH_MAPPING, string='Month',
-        states={'confirmed': [('readonly', True)]})
     frequency_change = fields.Boolean(
         string='Frequency change', states={'confirmed': [('readonly', True)]})
     total_partner_records = fields.Integer(
@@ -396,14 +350,14 @@ class Mod349PartnerRefund(models.Model):
 
     @api.one
     @api.depends('partner_vat', 'country_id', 'total_operation_amount',
-                 'total_origin_amount', 'period_selection', 'fiscalyear_id')
+                 'total_origin_amount', 'partner_record')
     def _check_partner_refund_line(self):
         """Checks if partner refund line have all fields filled."""
         self.partner_refund_ok = bool(
             self.partner_vat and self.country_id and
             self.total_operation_amount >= 0.0 and
             self.total_origin_amount >= 0.0 and
-            self.period_selection and self.fiscalyear_id)
+            self.partner_record)
 
     report_id = fields.Many2one(
         comodel_name='l10n.es.aeat.mod349.report', string='AEAT 349 Report ID',
@@ -414,22 +368,19 @@ class Mod349PartnerRefund(models.Model):
     operation_key = fields.Selection(
         selection=OPERATION_KEYS, string='Operation key', required=True)
     country_id = fields.Many2one(comodel_name='res.country', string='Country')
-    fiscalyear_id = fields.Many2one(
-        comodel_name='account.fiscalyear', string='Fiscal year')
     total_operation_amount = fields.Float(string='Total operation amount')
     total_origin_amount = fields.Float(
         string='Original amount', help="Refund original amount")
     partner_refund_ok = fields.Boolean(
         compute="_check_partner_refund_line", string='Partner refund OK',
         help='Checked if refund record is OK')
-    period_selection = fields.Selection(
-        [('0A', '0A - Annual'),
-         ('MO', 'MO - Monthly'),
-         ('1T', '1T - First Quarter'),
-         ('2T', '2T - Second Quarter'),
-         ('3T', '3T - Third Quarter'),
-         ('4T', '4T - Fourth Quarter')], 'Period')
-    month_selection = fields.Selection(selection=MONTH_MAPPING, string='Month')
+    partner_record = fields.Many2one(
+        comodel_name="l10n.es.aeat.mod349.partner_record")
+    fiscalyear_id = fields.Many2one(
+        comodel_name='account.fiscalyear', store=True,
+        related="partner_record.report_id.fiscalyear_id")
+    period_type = fields.Selection(
+        related="partner_record.report_id.period_type", store=True)
     refund_detail_ids = fields.One2many(
         comodel_name='l10n.es.aeat.mod349.partner_refund_detail',
         inverse_name='refund_id', string='Partner refund detail IDS')
