@@ -45,8 +45,18 @@ class CreateFacturae(models.TransientModel):
     state = fields.Selection([('first', 'First'), ('second', 'Second')],
                              'State', readonly=True, default='first')
     firmar_facturae = fields.Boolean(
-        '¿Desea firmar digitalmente el fichero generado?',
+        '¿Desea firmar digitalmente el fichero generado?', 
+        default=False,
         help='Requiere certificado en la ficha de la compañía')
+
+    @api.model
+    def default_get(self, fields):
+        res = super(CreateFacturae, self).default_get(fields)
+        invoice = self.env['account.invoice'].browse(
+            self.env.context['active_id'])
+        if invoice.company_id.facturae_cert:
+            res['firmar_facturae'] = True
+        return res
 
     @api.model
     def _validate_facturae(self, xml_string):
@@ -85,26 +95,23 @@ class CreateFacturae(models.TransientModel):
             # creamos los ficheros auxiliares.
             file_name_unsigned = path + 'unsigned_' + file_name
             file_name_signed = path + file_name
-            file_unsigned = open(file_name_unsigned, "w+")
-            file_unsigned.write(xml_facturae)
-            file_unsigned.close()
-            file_signed = open(file_name_signed, "w+")
-            # Extraemos los datos del certificado para la firma electrónica.
-            certificate = invoice.company_id.facturae_cert
-            cert_passwd = invoice.company_id.facturae_cert_password
-            cert_path = path + 'certificado.pfx'
-            cert_file = open(cert_path, 'wb')
-            cert_file.write(certificate.decode('base64'))
-            cert_file.close()
-            # Componemos la llamada al firmador.
-            call = ['java', '-jar', path + 'FacturaeJ.jar', '0']
-            call += [file_name_unsigned, file_name_signed]
-            call += ['facturae31']
-            call += [cert_path, cert_passwd]
-            _run_java_sign(call)
-            # Cerramos y eliminamos ficheros temporales.
-            file_content = file_signed.read()
-            file_signed.close()
+            with open(file_name_unsigned, "w+") as file_unsigned:
+                file_unsigned.write(xml_facturae)
+            with open(file_name_signed, "w+") as file_signed:
+                # Extraemos los datos del certificado para la firma electrónica.
+                certificate = invoice.company_id.facturae_cert
+                cert_passwd = invoice.company_id.facturae_cert_password
+                cert_path = path + 'certificado.pfx'
+                with open(cert_path, 'wb') as cert_file:
+                    cert_file.write(certificate.decode('base64'))
+                # Componemos la llamada al firmador.
+                call = ['java', '-Xms32m', '-Xmx128m', '-jar', path + 'FacturaeJ.jar', '0']
+                call += [file_name_unsigned, file_name_signed]
+                call += ['facturae31']
+                call += [cert_path, cert_passwd]
+                _run_java_sign(call)
+                file_signed.seek(0)
+                file_content = file_signed.read()
             os.remove(file_name_unsigned)
             os.remove(file_name_signed)
             os.remove(cert_path)
@@ -129,10 +136,10 @@ class CreateFacturae(models.TransientModel):
             invoice_file = xml_facturae
             file_name = (_(
                 'facturae') + '_' + invoice.number + '.xml').replace('/', '-')
-        file = base64.b64encode(invoice_file)
+        file_datas = base64.b64encode(invoice_file)
         self.env['ir.attachment'].create({
             'name': file_name,
-            'datas': file,
+            'datas': file_datas,
             'datas_fname': file_name,
             'res_model': 'account.invoice',
             'res_id': invoice.id
@@ -141,7 +148,7 @@ class CreateFacturae(models.TransientModel):
                 invoice.number)
         self.write({
             'note': log(),
-            'facturae': file,
+            'facturae': file_datas,
             'facturae_fname': file_name,
             'state': 'second'
         })
